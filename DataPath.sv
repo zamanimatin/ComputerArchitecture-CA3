@@ -10,7 +10,7 @@ module MUX32Bit2input (input[31:0]ZEROsel, ONEsel, input selector, output reg [3
     end
 endmodule
 
-module  MUX5Bit2input(input [4:0]ZEROsel, ONEsel, input selector, output reg [4:0] out);
+module MUX5Bit2input(input [4:0]ZEROsel, ONEsel, input selector, output reg [4:0] out);
     always @(ZEROsel, ONEsel, selector) begin
         out = 5'b0;
         if(selector == 1'b0) 
@@ -34,7 +34,7 @@ module MUX32Bit4input (input [31:0]ZEROsel, ONEsel, TWOsel, THREEsel, input [1:0
     end
 endmodule
 
-module  SignExtender(input [15:0]in, output reg [31:0] out);
+module SignExtender(input [15:0]in, output reg [31:0] out);
     always @(in) begin
         out = 32'b0;
         out = 32'(signed'(in));
@@ -78,11 +78,9 @@ module ALU32Bit (input [31:0]A, B, input [2:0]ALUop, output reg[31:0] ALUout, ou
     end
 endmodule
 
-module Register32BitWithLoad(input [31:0]in, input rst, clk, ldin, initPC, output reg[31:0]out);
+module Register32BitWithLoad(input [31:0]in, input rst, clk, ldin, output reg[31:0]out);
     always @(posedge clk, posedge rst) begin
         if (rst)
-            out <= 32'b0;
-        else if (initPC)
             out <= 32'b0;
         else if (ldin)
             out <= in;
@@ -141,6 +139,41 @@ module Memory (input [31:0]Address, WriteData, input MemRead, MemWrite, clk, rst
     end
 endmodule
 
+module MIPSDatapath (input PCWrite, PCWriteCond, IorD, MemWrite, MemRead, IRWrite, RegDst, WriteRegSel, MemtoReg, WriteDataSel, RegWrite, ALUSrcA, rst, clk, input [1:0]ALUSrcB, PCSrc, input [2:0]ALUoperation, output ZeroFlag, output [31:0]Instruction);
+    wire PCload, Andout, zeroflagout;
+    wire [31:0] PCWire, AddressWire, DataWire, IRout, MDRout, MemtoRegWire, WDataInput, ReadData1Wire, ReadData2Wire, RegAout, RegBout, container4, SEXTout, Shl2Sextout, SrcAin, SrcBin, mainALUout, ALUoutRegWire, PCinWire, ZeroExtout2;
+    wire [4:0] RegDstWire, container31, WriteRegInput;
+    wire [27:0] ZeroExtout;
+    
+    assign PCload = PCWrite | Andout;
+    assign Andout = PCWriteCond & zeroflagout;
+    assign container31 = 5'b11111; // 5bit 31 value
+    assign container4 = 32'b00000000000000000000000000000100; // 32bit 4 value
+    assign ZeroExtout2 = {PCWire[31:28], ZeroExtout};
+    
+    MUX32Bit2input MUX1(PCWire, ALUoutRegWire, IorD, AddressWire);
+    MUX5Bit2input MUX2(IRout[20:16], IRout[15:11], RegDst, RegDstWire);
+    MUX5Bit2input MUX3(RegDstWire, container31, WriteRegSel, WriteRegInput);
+    
+    MUX32Bit2input MUX4(ALUoutRegWire, MDRout, MemtoReg, MemtoRegWire);
+    MUX32Bit2input MUX5(MemtoRegWire, PCWire, WriteDataSel, WDataInput);
+    MUX32Bit2input MUX6(PCWire, RegAout, ALUSrcA, SrcAin);
 
+    MUX32Bit4input MUX7(RegBout, container4, SEXTout, Shl2Sextout, ALUSrcB, SrcBin);
+    MUX32Bit4input MUX8(mainALUout, ZeroExtout2, ALUoutRegWire, RegAout, PCSrc, PCinWire);
+
+    SignExtender SignExtend(IRout[15:0], SEXTout);
+    ShiftLeft2bit Shl2sext(SEXTout, Shl2Sextout);
+    ZEROExtender ZeroExt(IRout[25:0], ZeroExtout);
+
+    
+
+
+
+    
+
+    
+
+endmodule
 
 
