@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 
 module Controller (input zeroflag, input [31:0]instruction, input clk, rst, output reg PCWrite, PCWriteCond, IorD, MemWrite, MemRead, IRWrite, RegDst, WriteRegSel, MemtoReg, WriteDataSel, RegWrite, ALUSrcA, output reg [1:0]ALUSrcB, PCSrc, output reg [2:0]ALUoperation);
-    parameter [3:0] IF = 4'b0000, ID = 4'b0001, JumpComplete = 4'b0010, branchComplete = 4'b0011, RTstart = 4'b0100, RTcomplete = 4'b0101, MemRefStart = 4'b0110, SWcomplete = 4'b0111, LWstart = 4'1000, LWcomplete = 4'b1001, JumpRcomplete = 4'b1010, JALcomplete = 4'b1011;
+    parameter [3:0] IF = 4'b0000, ID = 4'b0001, JumpComplete = 4'b0010, branchComplete = 4'b0011, RTstart = 4'b0100, RTcomplete = 4'b0101, MemRefStart = 4'b0110, SWcomplete = 4'b0111, LWstart = 4'b1000, LWcomplete = 4'b1001, JumpRcomplete = 4'b1010, JALcomplete = 4'b1011;
 
     reg [3:0]ps, ns;
     wire [5:0]functionType;
