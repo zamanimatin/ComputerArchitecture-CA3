@@ -166,7 +166,6 @@ module Controller (input zeroflag, input [31:0]instruction, input clk, rst, outp
             default : ns = IF;
         endcase
     end
-
     always @(posedge clk, posedge rst)begin
         if(rst)
             ps <= IF;
