@@ -4,9 +4,9 @@ module MUX32Bit2input (input[31:0]ZEROsel, ONEsel, input selector, output reg [3
     always @(ZEROsel, ONEsel, selector)begin
         out = 32'b0;
         if (selector == 1'b0)
-            out = ZEROsel
+            out = ZEROsel;
         else if (selector == 1'b1)
-            out = ONEsel
+            out = ONEsel;
     end
 endmodule
 
