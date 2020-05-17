@@ -82,6 +82,7 @@ module Register32BitWithLoad(input [31:0]in, input rst, clk, ldin, output reg[31
     always @(posedge clk, posedge rst) begin
         if (rst)
             out <= 32'b0;
+        // Init property has been removed
         else if (ldin)
             out <= in;
     end
@@ -150,11 +151,11 @@ module MIPSDatapath (input PCWrite, PCWriteCond, IorD, MemWrite, MemRead, IRWrit
     assign container31 = 5'b11111; // 5bit 31 value
     assign container4 = 32'b00000000000000000000000000000100; // 32bit 4 value
     assign ZeroExtout2 = {PCWire[31:28], ZeroExtout};
-    
+
     MUX32Bit2input MUX1(PCWire, ALUoutRegWire, IorD, AddressWire);
     MUX5Bit2input MUX2(IRout[20:16], IRout[15:11], RegDst, RegDstWire);
     MUX5Bit2input MUX3(RegDstWire, container31, WriteRegSel, WriteRegInput);
-    
+
     MUX32Bit2input MUX4(ALUoutRegWire, MDRout, MemtoReg, MemtoRegWire);
     MUX32Bit2input MUX5(MemtoRegWire, PCWire, WriteDataSel, WDataInput);
     MUX32Bit2input MUX6(PCWire, RegAout, ALUSrcA, SrcAin);
@@ -166,13 +167,23 @@ module MIPSDatapath (input PCWrite, PCWriteCond, IorD, MemWrite, MemRead, IRWrit
     ShiftLeft2bit Shl2sext(SEXTout, Shl2Sextout);
     ZEROExtender ZeroExt(IRout[25:0], ZeroExtout);
 
-    
+    Register32BitWithLoad PC(PCinWire, rst, clk, PCload, PCWire);
+    Register32BitWithLoad IR(DataWire, rst, clk, IRWrite, IRout);
 
+    Register32BitWithoutLoad MDR(DataWire, rst, clk, MDRout);
+    Register32BitWithoutLoad A(ReadData1Wire, rst, clk, RegAout);
+    Register32BitWithoutLoad B(ReadData2Wire, rst, clk, RegBout);
+    Register32BitWithoutLoad ALUout(mainALUout, rst, clk, ALUoutRegWire);
 
+    ALU32Bit MainALU (SrcAin, SrcBin, ALUoperation, mainALUout, zeroflagout);
 
-    
+    Memory MainMemory(AddressWire, RegBout, MemRead, MemWrite, clk, rst, DataWire);
+    RegFile MainRegFile(IRout[25:21], IRout[20:16], WriteRegInput, WDataInput,  clk, rst, RegWrite, ReadData1Wire, ReadData2Wire);
 
-    
+    // output assignment
+    assign ZeroFlag = zeroflagout;
+    assign Instruction = IRout;
+
 
 endmodule
 
