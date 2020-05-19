@@ -149,6 +149,7 @@ module Controller (input zeroflag, input [31:0]instruction, input clk, rst, outp
                 MemtoReg = 1'b1;
                 WriteDataSel = 1'b0;
                 RegWrite = 1'b1;
+                ns = IF;
             end
             JumpRcomplete : begin
                 // Please check that this signals are enough to set for this instruction 
