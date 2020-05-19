@@ -88,7 +88,6 @@ module Register32BitWithLoad(input [31:0]in, input rst, clk, ldin, output reg[31
     end
 endmodule
 
-// Note that I didn't put init property for registers without load property, if you think that's needed Please add it!!!
 module Register32BitWithoutLoad (input [31:0]in, input rst, clk, output reg [31:0]out);
     always@(posedge clk, posedge rst) begin
         if (rst)
@@ -107,7 +106,6 @@ module RegFile (input [4:0]ReadReg1, ReadReg2, input [4:0]WriteReg, input [31:0]
         ReadData2 = REGFILE[ReadReg2];
     end
     always @(posedge clk, posedge rst)begin
-        {ReadData1, ReadData2} = 64'b0;
         if (rst) begin
             for(integer i = 0; i < 32; i++) begin
                 REGFILE[i] = 32'b0;
@@ -119,22 +117,20 @@ module RegFile (input [4:0]ReadReg1, ReadReg2, input [4:0]WriteReg, input [31:0]
 endmodule
 
 module Memory (input [31:0]Address, WriteData, input MemRead, MemWrite, clk, rst, output reg [31:0]ReadData);
-    // I've defined Memory size as below if you think it should be more, modify it
     reg [31:0] Mem [0:512];
     always @(negedge rst) begin
-        $readmemb("Memory.mem", Mem);
+        $readmemb("Memory2.mem", Mem); // Change it to Memory1.mem or Memory2.mem for 1 and 2!
     end
-    // Check this memory difference with CA#2 memories, I merged all always statements with each other
-    always @(posedge clk, posedge rst, Address, MemRead) begin
+    always @(Address, MemRead, negedge rst) begin
         ReadData = 32'b00000000000000000000000000000000;
-        if (rst) begin
-            // Check that this for statement works well, cause I think it should go exactly through 512
-            for (integer i = 0; i < 512; i++) begin
+        if (MemRead)
+            ReadData = Mem[Address[31:2]];
+    end
+    always@( posedge clk, posedge rst) begin
+        if (rst)
+            for(integer i = 0; i < 512; i++)begin
                 Mem[i] = 32'b00000000000000000000000000000000;
             end
-        end
-        else if (MemRead)
-            ReadData = Mem[Address[31:2]];
         else if (MemWrite)
             Mem[Address[31:2]] = WriteData;
     end

@@ -1,11 +1,10 @@
 `timescale 1ns/1ns
 
 module Controller (input zeroflag, input [31:0]instruction, input clk, rst, output reg PCWrite, PCWriteCond, IorD, MemWrite, MemRead, IRWrite, RegDst, WriteRegSel, MemtoReg, WriteDataSel, RegWrite, ALUSrcA, output reg [1:0]ALUSrcB, PCSrc, output reg [2:0]ALUoperation);
-    parameter [3:0] IF = 4'b0000, ID = 4'b0001, JumpComplete = 4'b0010, branchComplete = 4'b0011, RTstart = 4'b0100, RTcomplete = 4'b0101, MemRefStart = 4'b0110, SWcomplete = 4'b0111, LWstart = 4'b1000, LWcomplete = 4'b1001, JumpRcomplete = 4'b1010, JALcomplete = 4'b1011;
+    parameter [3:0] IF = 4'b0000, ID = 4'b0001, JumpComplete = 4'b0010, branchComplete = 4'b0011, RTstart = 4'b0100, RTcomplete = 4'b0101, MemRefStart = 4'b0110, SWcomplete = 4'b0111, LWstart = 4'b1000, LWcomplete = 4'b1001, JumpRcomplete = 4'b1010, JALcomplete = 4'b1011, RTcomplete3 = 4'b1100;
 
     reg [3:0]ps, ns;
-    wire [5:0]functionType;
-    wire [5:0]instructionType;
+    wire [5:0]functionType, Opcode;
     assign Opcode = instruction[31:26];
     assign functionType = instruction[5:0];
     always @(zeroflag, instruction, ps)begin
@@ -81,6 +80,7 @@ module Controller (input zeroflag, input [31:0]instruction, input clk, rst, outp
                     6'b000000 : begin //.. ordinary rtype
                         ALUSrcA = 1'b1;
                         ALUSrcB = 2'b00;
+                        ns = RTcomplete3;
                         case(functionType)
                             6'b100000 : begin //.. case add function
                                 ALUoperation = 3'b010;
@@ -103,17 +103,26 @@ module Controller (input zeroflag, input [31:0]instruction, input clk, rst, outp
                         ALUSrcA = 1'b1;
                         ALUSrcB = 2'b10;
                         ALUoperation = 3'b010;
+                        ns = RTcomplete;
                     end
                     6'b001100 : begin //.. andi
                         ALUSrcA = 1'b1;
                         ALUSrcB = 2'b10;
                         ALUoperation = 3'b000;
+                        ns = RTcomplete;
                     end
                 endcase
-                ns = RTcomplete;
             end
             RTcomplete : begin
                 RegDst = 1'b0;
+                WriteRegSel = 1'b0;
+                MemtoReg = 1'b0;
+                WriteDataSel = 1'b0;
+                RegWrite = 1'b1;
+                ns = IF;
+            end
+            RTcomplete3 : begin
+                RegDst = 1'b1;
                 WriteRegSel = 1'b0;
                 MemtoReg = 1'b0;
                 WriteDataSel = 1'b0;
